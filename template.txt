@@ -1,0 +1,40 @@
+(~var){
+    "apples" : "oranges"
+}
+
+(template1){
+    [var]
+    (2){
+        " abc"
+    }
+}
+
+(template2){
+    [template1]
+"
+"
+    "hello"
+"
+
+"
+}
+
+(2){[template2]}
+
+(~anotherVar){
+    "lol" : "kek"
+}
+
+(recursiveTemplate){
+    [anotherVar][recursiveTemplate]
+}
+
+HEY you can also type anywhere between statements!
+This is treated like commenting!
+
+(1){
+"It's true!"
+"
+"
+[recursiveTemplate]
+}
