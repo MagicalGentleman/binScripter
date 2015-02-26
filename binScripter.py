@@ -1,10 +1,9 @@
 __author__ = 'MagicalGentleman'
-__name__ = 'binScripter'
 
 # Version 1.2.2
 
 ################################################################################
-##    binScripter Ver. 1.2.1, A templated binary formatter.                   ##
+##    binScripter Ver. 1.2.2, A templated binary formatter.                   ##
 ##    Copyright (C) 2015  MagicalGentleman (Quinn Unger)                      ##
 ##                                                                            ##
 ##    This program is free software: you can redistribute it and/or modify    ##
