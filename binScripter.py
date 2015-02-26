@@ -1,9 +1,9 @@
 __author__ = 'MagicalGentleman'
 
-# Version 1.2.2
+# Version 1.3
 
 ################################################################################
-##    binScripter Ver. 1.2.2, A templated binary formatter.                   ##
+##    binScripter Ver. 1.3, A templated binary formatter.                   ##
 ##    Copyright (C) 2015  MagicalGentleman (Quinn Unger)                      ##
 ##                                                                            ##
 ##    This program is free software: you can redistribute it and/or modify    ##
@@ -26,6 +26,25 @@ import os
 import sys
 import re
 
+class Arguments:
+    pass
+
+arguments = Arguments()
+
+parser = argparse.ArgumentParser(description='A tool to parse ./autoprogram templates.')
+
+parser.add_argument('source', nargs=1, help='Your binary source file.', metavar='source')
+parser.add_argument('template', nargs=1, help='Your template file path.', metavar='template')
+parser.add_argument('output', nargs='?', default=['output.prog'], help='Your generated autoprogram file.', metavar='output')
+
+parser.parse_args(namespace=arguments)
+
+sourcePath = os.path.normcase(arguments.source[0])
+templatePath = os.path.normcase(arguments.template[0])
+outputPath = os.path.normcase(arguments.output[0])
+
+output = open(outputPath, 'w')
+
 whitespace = re.compile('\s')
 
 class Tokens:
@@ -39,6 +58,7 @@ class Tokens:
     stringDef = '"'
     delimiter = ':'
     varChar = '~'
+    escape = '\\'
     # note that isMeta() only checks for
     # the Open and Close type tokens!
 
@@ -59,30 +79,25 @@ class Tokens:
         else:
             return False
 
+class EscapeCharacters:
+
+    n = '\n'
+    t = '\t'
+
+    def convert(self, char):
+        # takes the escape character minus the backslash
+        if char == 'n':
+            return self.n
+        elif char == 't':
+            return self.t
+        else:
+            return char
+
 
 class Flags:
     declaring = True
 
 flag = Flags()
-
-class Arguments:
-    pass
-
-arguments = Arguments()
-
-parser = argparse.ArgumentParser(description='A tool to parse ./autoprogram templates.')
-
-parser.add_argument('source', nargs=1, help='Your binary source file.', metavar='source')
-parser.add_argument('template', nargs=1, help='Your template file path.', metavar='template')
-parser.add_argument('output', nargs='?', default=['output.prog'], help='Your generated autoprogram file.', metavar='output')
-
-parser.parse_args(namespace=arguments)
-
-sourcePath = os.path.normcase(arguments.source[0])
-templatePath = os.path.normcase(arguments.template[0])
-outputPath = os.path.normcase(arguments.output[0])
-
-output = open(outputPath, 'w')
 
 class ExitProgram:
     
@@ -125,6 +140,7 @@ class TemplateReader:
 
     templateFile = open(templatePath, 'r')
     tokens = Tokens()
+    escape = EscapeCharacters()
     token = ''
     isMeta = False
     reusIndex = {}
@@ -221,7 +237,11 @@ class TemplateReader:
         charAcc = ''
         self.getNext() # get past the opening stringDef
         while self.token != self.tokens.stringDef:
-            charAcc += self.token
+            if self.token == self.tokens.escape:
+                self.getNext()
+                charAcc += self.escape.convert(self.token)
+            else:
+                charAcc += self.token
             self.getNext()
         return charAcc
 

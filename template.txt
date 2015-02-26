@@ -44,8 +44,6 @@ HEY you can also type anywhere between statements!
 This is treated like commenting!
 
 (1){
-"It's true!"
-"
-"
+"It's true!\n"
 [recursiveTemplate]
 }
