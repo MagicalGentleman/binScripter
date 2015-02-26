@@ -1,7 +1,7 @@
 __author__ = 'MagicalGentleman'
 __name__ = 'binScripter'
 
-# Version 1.2.1
+# Version 1.2.2
 
 ################################################################################
 ##    binScripter Ver. 1.2.1, A templated binary formatter.                   ##
@@ -229,6 +229,24 @@ class TemplateReader:
 source = SourceReader()
 template = TemplateReader()
 
+def passBody():
+    # used to advance past an element's body.
+    bodyDepth = 0 # Body bracket counter so we know when we leave the element.
+
+    while True: # This loop will exit on a break later.
+        # Get next meta declaration
+        while not template.isMeta:
+            template.getNext()
+        # Examine the meta chars:
+        if template.token == template.tokens.bodyOpen:
+            bodyDepth += 1
+        elif template.token == template.tokens.bodyClose:
+            bodyDepth -= 1
+        # exit loop when past all nested brackets:
+        if bodyDepth == 0:
+            break
+        template.advance()
+    return
 
 def varHandler():
     # Handle var declarations
@@ -272,22 +290,7 @@ def reusHandler():
 
     # Now we must advance past the reusable template's body to
     # the next declaration:
-
-    bodyDepth = 0 # Body bracket counter so we know when we leave the template.
-
-    while True: # This loop will exit on a break later.
-        # Get next meta declaration
-        while not template.isMeta:
-            template.advance()
-        # Examine the meta chars:
-        if template.token == template.tokens.bodyOpen:
-            bodyDepth += 1
-        elif template.token == template.tokens.bodyClose:
-            bodyDepth -= 1
-        # exit loop when past all nested brackets:
-        if bodyDepth == 0:
-            break
-        template.advance()
+    passBody()
     return
 
 def defHandler():
@@ -341,14 +344,19 @@ def countParse():
     count = 0
     if template.isNum():
         count = template.getNum()
+        # Ignore a zero count.
+        if count == 0:
+            template.advance()
+            passBody()
+            return # Leave function now!
     else:
-        exitProg.error("expected a number")
+        exitProg.expected("an integer", template.token)
     template.skipws() # Make sure we are at the defClose char.
     if template.token != template.tokens.defClose:
-        exitProg.error("expected " + template.tokens.defClose)
+        exitProg.expected(template.tokens.defClose, template.token)
     template.advance() # Advance to bodyOpen char.
     if template.token != template.tokens.bodyOpen:
-        exitProg.error("expected " + template.tokens.bodyOpen)
+        exitProg.expected(template.tokens.bodyOpen, template.token)
     # save address at bodyOpen char:
     loopStart = template.address
 
@@ -369,7 +377,7 @@ def mainParse():
             if template.token == template.tokens.defOpen:
                 defHandler()
             else:
-                exitProg.error("expected " + template.tokens.defOpen)
+                exitProg.expected(template.tokens.defOpen, template.token)
         else:
             pass # comments are anything outside bracketed statements.
 
