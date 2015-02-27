@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../Autoprog Templater/.idea/Autoprog Templater.iml" filepath="$PROJECT_DIR$/../Autoprog Templater/.idea/Autoprog Templater.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../binScripter/.idea/binScripter.iml" filepath="$PROJECT_DIR$/../binScripter/.idea/binScripter.iml" />
     </modules>
   </component>
 </project>

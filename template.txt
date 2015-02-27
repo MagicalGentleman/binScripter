@@ -11,12 +11,9 @@
 
 (template2){
     [template1]
-"
-"
+    "\n"
     "hello"
-"
-
-"
+    "\n\n"
 }
 
 (2){[template2]}

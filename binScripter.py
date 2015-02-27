@@ -3,7 +3,7 @@ __author__ = 'MagicalGentleman'
 # Version 1.3
 
 ################################################################################
-##    binScripter Ver. 1.3, A templated binary formatter.                   ##
+##    binScripter Ver. 1.3, A template based binary formatter.                ##
 ##    Copyright (C) 2015  MagicalGentleman (Quinn Unger)                      ##
 ##                                                                            ##
 ##    This program is free software: you can redistribute it and/or modify    ##
@@ -100,10 +100,13 @@ class Flags:
 flag = Flags()
 
 class ExitProgram:
-    
+
+    currFunc = "main"
+    errorHeader = "Error:\nIn " + currFunc + ":\n"
+
     def error(self, message = "unspecified error."): # TODO: do better error messages!
         # I'll make this better I swear!
-        sys.exit("Error: " + message)
+        sys.exit(self.errorHeader + message)
 
     def success(self, message = "Operation complete."):
         print(message)
@@ -115,9 +118,7 @@ class ExitProgram:
         self.success()
 
     def expected(self, required, actual):
-        sys.exit("Error:\n    Expected: " + required + "\n    Got: " + actual)
-    
-exitProg = ExitProgram()
+        sys.exit(self.errorHeader + "    Expected: " + required + "\n    Got: " + actual)
 
 class SourceReader:
 
@@ -132,7 +133,6 @@ class SourceReader:
         else:
             token = self.getNext()
         return int(token)
-
 
 class TemplateReader:
 
@@ -245,8 +245,10 @@ class TemplateReader:
             self.getNext()
         return charAcc
 
+
 source = SourceReader()
 template = TemplateReader()
+exitProg = ExitProgram()
 
 def passBody():
     # used to advance past an element's body.
@@ -348,8 +350,10 @@ def callHandler():
     if callName in template.reusIndex:
         returnAddress = template.address
         template.jumpToKey(callName)
+        exitProg.currFunc = callName
         commonParse()
         template.jump(returnAddress)
+        exitProg.currFunc = "main"
     elif callName in template.varIndex:
         output.write(template.varFetch(callName)[source.getNext()]) # The only line that reads from source xD
     else:
