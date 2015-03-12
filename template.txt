@@ -1,46 +1,27 @@
-(~var){
-    "apples" : "oranges"
+(~A){"string 1" : "string 2"}
+
+(4){
+    [A] "\n"
 }
 
-(template1){
-    [var]
-    (2){
-        " abc"
-    }
+(template){
+    "this is a template, call this wherever.\n"
+    [A] "\n"
 }
 
-(template2){
-    [template1]
-    "\n"
-    "hello"
-    "\n\n"
+(~B){[template]:"String"}
+
+(1){"Now time to test mixing the var defs:\n"}
+
+(4){
+    [B]
 }
 
-(2){[template2]}
+(1){"Hopefully that worked. now to try alternating between two template calls:\n"}
 
-(0){
-    "Will this run?"
-    fa
-    fs
-    fagtreta4
-    4t
-    (111){"wut"}
-     gth6hdthbz
-    will it?
-}
+(zeroTemplate){"zeroTemplate was called\n"}
+(oneTemplate){"oneTemplate was called\n"}
 
-(~anotherVar){
-    "lol" : "kek"
-}
+(~C){[zeroTemplate]:[oneTemplate]}
 
-(recursiveTemplate){
-    [anotherVar][recursiveTemplate]
-}
-
-HEY you can also type anywhere between statements!
-This is treated like commenting!
-
-(1){
-"It's true!\n"
-[recursiveTemplate]
-}
+(8){[C]}

@@ -1,9 +1,9 @@
 __author__ = 'MagicalGentleman'
 
-# Version 1.4
+# Version 1.5
 
 ################################################################################
-##    binScripter Ver. 1.4, A template based binary formatter.                ##
+##    binScripter Ver. 1.5, A template based binary formatter.                ##
 ##    Copyright (C) 2015  MagicalGentleman (Quinn Unger)                      ##
 ##                                                                            ##
 ##    This program is free software: you can redistribute it and/or modify    ##
@@ -105,9 +105,8 @@ class ExitProgram:
     currFunc = "main"
     errorHeader = "Error:\nIn " + currFunc + ":\n"
 
-    def error(self, message = "unspecified error."): # TODO: do better error messages!
-        # I'll make this better I swear!
-        sys.exit(self.errorHeader + message)
+    def error(self, message = "unspecified error."):
+        sys.exit(self.errorHeader + "    " + message)
 
     def success(self, message = "Operation complete."):
         print(message)
@@ -277,19 +276,40 @@ def varHandler():
     # Search for body opening bracket:
     template.advance() # advance to next valid char.
     if template.token == template.tokens.bodyOpen:
-        template.advance() # Bracket found, advance to string.
-        if template.token != template.tokens.stringDef:
-            exitProg.expected(template.tokens.stringDef, template.token)
+        template.advance() # Bracket found, advance to first item.
+        if template.token == template.tokens.stringDef:
+            zeroName = [template.getString(), False]
+        elif template.token == template.tokens.callOpen:
+            template.getNext()
+            callName = template.getName()
+            if callName in template.reusIndex:
+                zeroName = [template.reusIndex[callName], True] # True == template call address
+            elif callName in template.varIndex:
+                exitProg.expected("a template call", "a var reference")
+            else:
+                exitProg.expected("a valid template call", callName + " (undefined!)")
         else:
-            zeroName = template.getString()
+            exitProg.expected("a string or a template call", template.token)
+
         template.advance() # advance to the delimiter
         if template.token != template.tokens.delimiter:
             exitProg.expected(template.tokens.delimiter, template.token)
-        template.advance() # advance to second string.
-        if template.token != template.tokens.stringDef:
-            exitProg.expected(template.tokens.stringDef, template.token)
+
+        template.advance() # advance to second item.
+        if template.token == template.tokens.stringDef:
+            oneName = [template.getString(), False]
+        elif template.token == template.tokens.callOpen:
+            template.getNext()
+            callName = template.getName()
+            if callName in template.reusIndex:
+                oneName = [template.reusIndex[callName], True] # True == template call address
+            elif callName in template.varIndex:
+                exitProg.expected("a template call", "a var reference")
+            else:
+                exitProg.expected("a valid template call", callName + " (undefined!)")
         else:
-            oneName = template.getString()
+            exitProg.expected("a string or a template call", template.token)
+
         template.varIndex[varName] = [zeroName, oneName] # Put retrieved data in dict
         template.advance() # advance to bodyClose
         if template.token == template.tokens.bodyClose:
@@ -349,14 +369,25 @@ def callHandler():
     template.advance() # advance to name
     callName = template.getName() # Get name
     if callName in template.reusIndex:
+        returnFunc = exitProg.currFunc
         returnAddress = template.address
         template.jumpToKey(callName)
         exitProg.currFunc = callName
         commonParse()
         template.jump(returnAddress)
-        exitProg.currFunc = "main"
+        exitProg.currFunc = returnFunc
     elif callName in template.varIndex:
-        output.write(template.varFetch(callName)[source.getNext()]) # The only line that reads from source xD
+        value = template.varFetch(callName)[source.getNext()] # The only line that reads from source xD
+        if value[1] == True:
+            returnFunc = exitProg.currFunc
+            returnAddress = template.address
+            template.jump(value[0])
+            exitProg.currFunc = callName
+            commonParse()
+            template.jump(returnAddress)
+            exitProg.currFunc = returnFunc
+        else:
+            output.write(value[0])
     else:
         exitProg.error("undefined template or var call")
     return
