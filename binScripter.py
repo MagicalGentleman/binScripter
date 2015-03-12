@@ -1,9 +1,9 @@
 __author__ = 'MagicalGentleman'
 
-# Version 1.3
+# Version 1.4
 
 ################################################################################
-##    binScripter Ver. 1.3, A template based binary formatter.                ##
+##    binScripter Ver. 1.4, A template based binary formatter.                ##
 ##    Copyright (C) 2015  MagicalGentleman (Quinn Unger)                      ##
 ##                                                                            ##
 ##    This program is free software: you can redistribute it and/or modify    ##
@@ -26,22 +26,23 @@ import os
 import sys
 import re
 
-class Arguments:
-    pass
-
-arguments = Arguments()
-
 parser = argparse.ArgumentParser(description='A tool to parse ./autoprogram templates.')
 
-parser.add_argument('source', nargs=1, help='Your binary source file.', metavar='source')
-parser.add_argument('template', nargs=1, help='Your template file path.', metavar='template')
-parser.add_argument('output', nargs='?', default=['output.prog'], help='Your generated autoprogram file.', metavar='output')
+parser.add_argument('-r', '--recursionlimit', type=int, help="set the parser's recursion limit", default=0)
+parser.add_argument('source', nargs=1, help='Your binary source file.')
+parser.add_argument('template', nargs=1, help='Your template file path.')
+parser.add_argument('output', nargs='?', default=['output.prog'], help='Your generated autoprogram file.')
 
-parser.parse_args(namespace=arguments)
+args = parser.parse_args()
 
-sourcePath = os.path.normcase(arguments.source[0])
-templatePath = os.path.normcase(arguments.template[0])
-outputPath = os.path.normcase(arguments.output[0])
+recursionLimit = 512
+if args.recursionlimit > 0:
+    recursionLimit = args.recursionlimit
+sys.setrecursionlimit(recursionLimit)
+
+sourcePath = os.path.normcase(args.source[0])
+templatePath = os.path.normcase(args.template[0])
+outputPath = os.path.normcase(args.output[0])
 
 output = open(outputPath, 'w')
 
@@ -417,4 +418,10 @@ while True:
     # file is reached.
     # This is done from within
     # the source object.
-    mainParse()
+    try:
+        mainParse()
+    except RuntimeError as err:
+        if err.args[0] == "maximum recursion depth exceeded":
+            exitProg.error("Recursion limit exceeded.")
+        else:
+            raise
