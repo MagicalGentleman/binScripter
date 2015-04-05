@@ -444,7 +444,7 @@ def mainParse():
     # mainParse() can be looped until the file end is reached.
 
 while True:
-    # The program will exit
+    # The program will exit normally
     # when the end of the source
     # file is reached.
     # This is done from within

@@ -1,16 +1,22 @@
-string 2
-string 1
-string 2
-string 2
-Now time to test mixing the var defs:
-this is a template, call this wherever.
-string 2
-this is a template, call this wherever.
-string 2
-StringStringHopefully that worked. now to try alternating between two template calls:
-zeroTemplate was called
-zeroTemplate was called
-oneTemplate was called
-zeroTemplate was called
-oneTemplate was called
-oneTemplate was called
+t a t t a t a t ,>>
+t t a a t a t t ,>>
+t a a t a t a a ,>>
+t a t a t a t t ,>>
+a a a t a t t t ,>>
+t a t a t a a t ,>>
+t a t a t t a t ,>>
+a t a t t t a t ,>>
+a t a t a t t a ,>>
+t a t a t t t a ,>>
+a a t a t a t t ,>>
+t a a t a t a t ,>>
+a t a t a t a a ,>>
+t t a t t a t a ,>>
+t t a t a a a t ,>>
+a t a t t a t a ,>>
+;--
+t a t a a a t t ,>>
+a t a t a t a t ,>>
+a t a t t a t a ,>>
+t a t a t a a t ,>>
+t a t a a a t t ,>>
