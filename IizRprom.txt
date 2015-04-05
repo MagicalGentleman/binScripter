@@ -43,6 +43,8 @@ Move up 1 layer:
 
 MAIN SCRIPT:
 
+(1){[Up] "\n"}
+
 (returnTop){(16){[seekPrev]}} - use the amount of lines per layer here
 
 (16){ - use your amount of layers here
