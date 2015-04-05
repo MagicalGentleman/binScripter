@@ -1,0 +1,63 @@
+
+Main movement library:
+    (Left){"_"}
+    (Right){" "}
+    (Forwards){">"}
+    (Backwards){"<"}
+    (Up){"+"}
+    (Down){"-"}
+    (fullLeft){","}
+    (fullLeftBack){";"}
+
+Bit codes:
+    (one){"t" [Right]}
+    (zero){"a" [Right]}
+
+Bit setter:
+    (~bit){[zero]:[one]}
+
+Seek forward to next word start:
+    (seekF){
+        [fullLeft]
+        (2){[Forwards]}
+    }
+
+Seek down to start of next layer:
+    (seekD){
+        [fullLeftBack]
+        (2){[Down]}
+    }
+
+Seek up to start of next layer:
+    (seekU){
+        [fullLeftBack]
+        (2){[Up]}
+    }
+
+--------------------------------------
+
+MAIN SCRIPT HERE:
+
+(0){
+    The following is a script that
+    will write a binary file to a
+    64 line standard torch prom.
+    it will write from left to right
+    each bit starting at the most
+    significant bit, and then move
+    forwards (away from you) 1 line
+    and then repeat the process.
+    after 16 lines have been written,
+    the next layer of torch rom below
+    will be written to in the same fashion.
+}
+
+(4){
+    (16){
+        (8){[bit]}
+        [seekF]
+        "\n" - this is here so the output looks nice.
+    }
+    [seekD]
+    "\n" - this is here for same reason as above.
+}
