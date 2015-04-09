@@ -389,7 +389,7 @@ def callHandler():
         else:
             output.write(value[0])
     else:
-        exitProg.error("undefined template or var call")
+        exitProg.error("undefined template or var call: "+ callName)
     return
 
 def countParse():

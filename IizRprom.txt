@@ -1,5 +1,5 @@
 Main movement library:
-    (Left){"_"}
+    (Left){"$"}
     (Right){" "}
     (Forwards){">"}
     (Backwards){"<"}
