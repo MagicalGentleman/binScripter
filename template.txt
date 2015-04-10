@@ -1,36 +1,40 @@
 Main movement library:
-    (LEFT){"$"}
-    (RIGHT){" "}
-    (FORWARDS){">"}
-    (BACKWARDS){"<"}
+    (BACK){"$"}
+    (FORWARDS){" "}
+    (RIGHT){">"}
+    (LEFT){"<"}
     (UP){"+"}
     (DOWN){"-"}
-    (FULL_LEFT){","}
+    (FULL_BACK){","}
     (FULL_LEFT_BACK){";"}
 
 Custom block initialisation:
     (1){
-        TODO: declare block 'b' and rotated torch 'r'
+        "t=REDSTONE_TORCH_OFF:RIGHT\n"
+        "a=AIR\n"
+        "b=STONE\n"
+        "r=REDSTONE_TORCH_OFF:LEFT\n"
+        "|\n"
     }
 
 Bit codes:
     (normOne){
-        "t" [LEFT]
+        "t" [BACK]
         (2){[DOWN]}
     }
     (normZero){
-        "a" [LEFT]
+        "a" [BACK]
         (2){[DOWN]}
     }
     (blockOne){
-        "b" [LEFT]
+        "b" [BACK]
         (2){[DOWN]}
     }
     (blockZero){
         [normZero]
     }
     (rotatedOne){
-        "r" [LEFT]
+        "r" [BACK]
         (2){[DOWN]}
     }
     (rotatedZero){
@@ -45,10 +49,10 @@ Bit setters:
 Word placer:
     (placeWord){
         [blockBit]
-        [BACKWARDS]
+        [RIGHT]
         (9){[normBit]}
         [blockBit]
-        [FORWARDS]
+        [LEFT]
         [rotatedBit]
         "\n"
         (12){(2){[UP]}} Return top
@@ -56,27 +60,21 @@ Word placer:
 
 Seekers:
     (seekNext){
-        (4){[RIGHT]}
+        (4){[FORWARDS]}
     }
     (seekPrev){
-        (4){[LEFT]}
-    }
-    (seekForwards){
-        (2){[FORWARDS]}
-    }
-    (seekBackwards){
-        (2){[BACKWARDS]}
+        (4){[BACK]}
     }
     (nextLayer){
-        [FULL_LEFT]
-        [seekForwards]
+        [FULL_BACK]
+        (2){[LEFT]}
     }
 
 ---------------------------------
 
 MAIN SCRIPT:
 
-(8){ <- Layer count
+(16){ <- Layer count
     (8){ <- Word count
         "\n"
         [placeWord]

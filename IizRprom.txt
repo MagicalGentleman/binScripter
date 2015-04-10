@@ -1,49 +1,56 @@
 Main movement library:
-    (Left){"$"}
-    (Right){" "}
-    (Forwards){">"}
-    (Backwards){"<"}
-    (Up){"+"}
-    (Down){"-"}
-    (fullLeft){","}
-    (fullLeftBack){";"}
+    (BACK){"$"}
+    (FORWARDS){" "}
+    (RIGHT){">"}
+    (LEFT){"<"}
+    (UP){"+"}
+    (DOWN){"-"}
+    (FULL_BACK){","}
+    (FULL_LEFT_BACK){";"}
+
+Definition section:
+    (1){
+        "t=REDSTONE_TORCH_ON:RIGHT\n"
+        "a=AIR\n"
+        "|\n"
+    }
 
 Bit codes:
-    (one){"t" [Right]}
-    (zero){"a" [Right]}
+    (one){"t" [FORWARDS]}
+    (zero){"a" [FORWARDS]}
 
 Bit setter:
     (~bit){[zero]:[one]}
 
 Seek forward to next word start:
     (seekNext){
-        [fullLeft]
-        (2){[Forwards][Down]}
+        [FULL_BACK]
+        (2){[LEFT][DOWN]}
     }
 
 Seek backwards to previous word start:
     (seekPrev){
-        [fullLeft]
-        (2){[Backwards][Up]}
+        [FULL_BACK]
+        (2){[RIGHT][UP]}
     }
 
 Move down 1 layer:
     (layerNext){
-        [fullLeft]
-        (4){[Backwards][Down]}
+        [FULL_BACK]
+        (4){[RIGHT]}
+        (3){[DOWN]}
     }
 
 Move up 1 layer:
     (layerPrev){
-        [fullLeft]
-        (4){[Forwards][Up]}
+        [FULL_BACK]
+        (4){[LEFT]}
+        (3){[UP]}
     }
 
 ----------------------------------
 
 MAIN SCRIPT:
-
-(1){[Up] "\n"}
 
 (returnTop){(16){[seekPrev]}} - use the amount of lines per layer here
 
