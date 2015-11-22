@@ -1,10 +1,18 @@
+Main movement library:
+    (BACK){"$"}
+    (FORWARDS){" "}
+    (RIGHT){">"}
+    (LEFT){"<"}
+    (UP){"+"}
+    (DOWN){"-"}
+    (FULL_BACK){","}
+    (FULL_LEFT_BACK){";"}
+
 Block names:
     (forwardsTorch){"f"}
     (backwardsTorch){"r"}
     (block){"b"}
     (air){"a"}
-
-#include "moveLib.txt"
 
 Custom block initialisation:
     (1){

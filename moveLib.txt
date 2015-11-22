@@ -1,0 +1,9 @@
+Main movement library:
+    (BACK){"$"}
+    (FORWARDS){" "}
+    (RIGHT){">"}
+    (LEFT){"<"}
+    (UP){"+"}
+    (DOWN){"-"}
+    (FULL_BACK){","}
+    (FULL_LEFT_BACK){";"}

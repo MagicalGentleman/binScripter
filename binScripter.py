@@ -3,7 +3,7 @@ __author__ = 'MagicalGentleman'
 # Version 1.5
 
 ################################################################################
-##    binScripter Ver. 1.5, A template based binary formatter.                ##
+##    binScripter Ver. 2, A template based binary formatter.                  ##
 ##    Copyright (C) 2015  MagicalGentleman (Quinn Unger)                      ##
 ##                                                                            ##
 ##    This program is free software: you can redistribute it and/or modify    ##
@@ -29,12 +29,14 @@ import re
 parser = argparse.ArgumentParser(description='A tool to parse ./autoprogram templates.')
 
 parser.add_argument('-r', '--recursionlimit', type=int, help="set the parser's recursion limit", default=0)
-parser.add_argument('source', nargs=1, help='Your binary source file.')
+parser.add_argument('source', nargs = 1, help = 'Your binary source (in a text file).')
 parser.add_argument('template', nargs=1, help='Your template file path.')
 parser.add_argument('output', nargs='?', default=['output.prog'], help='Your generated autoprogram file.')
 
 args = parser.parse_args()
 
+# Some duct tape to stop infinite recursion
+# TODO: replace this with loop detection. e.g. check for second recursive call of func but no source advance
 recursionLimit = 512
 if args.recursionlimit > 0:
     recursionLimit = args.recursionlimit
@@ -43,6 +45,9 @@ sys.setrecursionlimit(recursionLimit)
 sourcePath = os.path.normcase(args.source[0])
 templatePath = os.path.normcase(args.template[0])
 outputPath = os.path.normcase(args.output[0])
+
+print(
+    "Writing from binary source file '" + sourcePath + "' to destination file '" + outputPath + "' using template '" + templatePath + "'...\n")
 
 output = open(outputPath, 'w')
 
@@ -94,19 +99,17 @@ class EscapeCharacters:
         else:
             return char
 
-
 class Flags:
     declaring = True
 
 flag = Flags()
 
 class ExitProgram:
-
-    currFunc = "main"
-    errorHeader = "Error:\nIn " + currFunc + ":\n"
+    def errorHeader(self):
+        return "Error:\nIn " + template.templateFile.errorLoc() + ":\n"
 
     def error(self, message = "unspecified error."):
-        sys.exit(self.errorHeader + "    " + message)
+        sys.exit(self.errorHeader() + "    " + message)
 
     def success(self, message = "Operation complete."):
         print(message)
@@ -118,37 +121,186 @@ class ExitProgram:
         self.success()
 
     def expected(self, required, actual):
-        sys.exit(self.errorHeader + "    Expected: " + required + "\n    Got: " + actual)
+        sys.exit(self.errorHeader() + "    Expected: " + required + "\n    Got: " + actual)
 
 class SourceReader:
 
     sourceFile = open(sourcePath, 'r')
+    sourceBuff = []
+    bitCount = 0
+    currBit = 0
+
+    def __init__(self):
+        while (True):
+            token = self.sourceFile.read(1)
+            if token == '':
+                self.sourceBuff.append(token)
+                self.sourceFile.close()
+                print("Source loaded.")
+                return
+            elif (token == '1') or (token == '0'):
+                self.bitCount += 1
+                self.sourceBuff.append(token)
 
     def getNext(self):
-        token = self.sourceFile.read(1)
+        token = self.sourceBuff[self.currBit]
         if (token == ''):
             exitProg.success()
-        elif (token == '1') or (token == '0'):
-            pass
         else:
-            token = self.getNext()
+            self.currBit += 1
         return int(token)
+
+
+class TemplateBuffer:
+    # The buffer for the main template file.
+    # This should include libraries too, eventually.
+    # The buffer is designed so that managing when
+    # libraries are inserted and what file you're in
+    # is completely invisible to whatever is using this
+    # class' methods.
+
+    currentFile = 0
+    address = [[0, 0]]
+
+    def __init__(self, mainTemplatePath):
+        # build up 3 dimensional list structure
+        self.buffer = []
+        self.buffer.append([])
+        self.buffer[0].append([])
+
+        self.fileName = [mainTemplatePath]
+
+        templateFile = [[open(mainTemplatePath, 'r'), mainTemplatePath]]
+
+        fileID = [0]
+        line = [0]
+        token = ''
+
+        self.fileCount = 0
+        activeFileDepth = 0
+
+        while True:
+            currFile = fileID[activeFileDepth]
+            token = templateFile[currFile][0].read(1)
+            self.buffer[currFile][line[activeFileDepth]].append(token)
+            if token == '\n':
+                self.buffer[currFile].append([])
+                line[activeFileDepth] += 1
+            elif token == '#':
+                token = templateFile[currFile][0].read(1)
+                temp = token
+                self.buffer[currFile][line[activeFileDepth]].append(token)
+                while (not whitespace.match(token)) and (token != ''):
+                    token = templateFile[currFile][0].read(1)
+                    if not whitespace.match(token):
+                        temp += token
+                    self.buffer[currFile][line[activeFileDepth]].append(token)
+                if temp == "include":
+                    token = templateFile[currFile][0].read(1)
+                    self.buffer[currFile][line[activeFileDepth]].append(token)
+                    if token == '"':
+                        token = templateFile[currFile][0].read(1)
+                        self.buffer[currFile][line[activeFileDepth]].append(token)
+                        temp = token
+                        while (token != '"') and (token != ''):
+                            token = templateFile[currFile][0].read(1)
+                            if token != '"':
+                                temp += token
+                            self.buffer[currFile][line[activeFileDepth]].append(token)
+                    else:
+                        temp += token
+                        while (not whitespace.match(token)) and (token != ''):
+                            token = templateFile[currFile][0].read(1)
+                            if not whitespace.match(token):
+                                temp += token
+                            self.buffer[currFile][line[activeFileDepth]].append(token)
+
+                    # open new file
+                    newTemplate = os.path.normcase(temp)
+                    templateFile.append([open(newTemplate, 'r'), newTemplate])
+
+                    print("Including template " + newTemplate)
+
+                    self.fileCount += 1  # increase file count
+
+                    # link to next file
+                    self.buffer[currFile][line[activeFileDepth]].append(self.fileCount)
+
+                    # new file entry
+                    self.buffer.append([])
+                    self.buffer[self.fileCount].append([])
+
+                    # new file address index entry
+                    self.address.append([0, 0])
+
+                    # new file name entry
+                    self.fileName.append(newTemplate)
+
+                    activeFileDepth += 1  # increase depth count
+                    fileID.append(self.fileCount)  # new file ID in file process stack
+                    line.append(0)  # new line count line process stack
+                else:
+                    # more preprocessor stuff will go here eventually
+                    pass
+            elif token == '':
+                templateFile[currFile][0].seek(0)
+                # when full support for libraries are added, more code
+                # should go here.
+                if activeFileDepth == 0:
+                    print("Template file(s) loaded.")
+                    i = 0
+                    while i <= self.fileCount:
+                        templateFile[i][0].close()
+                        i += 1
+                    return
+                else:
+                    # This returns to the previous buffer
+                    # for the previous file
+                    # link to previous active file
+                    self.buffer[currFile][line[activeFileDepth]].pop()
+                    self.buffer[currFile][line[activeFileDepth]].append(fileID[activeFileDepth - 1])
+                    # pop finished file
+                    activeFileDepth -= 1
+                    fileID.pop()
+                    line.pop()
+        return
+
+    def read(self):
+        token = self.buffer[self.currentFile][self.address[self.currentFile][0]][self.address[self.currentFile][1]]
+        self.address[self.currentFile][1] += 1
+        if token == '\n':
+            self.address[self.currentFile] = [self.address[self.currentFile][0] + 1, 0]
+        elif type(token) is int:
+            self.currentFile = token
+            return self.read()
+        return token
+
+    def jump(self, address):
+        self.currentFile = address[0]
+        self.address[self.currentFile] = [address[1], address[2]]
+        return
+
+    def getAddress(self):
+        return [self.currentFile, self.address[self.currentFile][0], self.address[self.currentFile][1]]
+
+    def errorLoc(self):
+        return "'" + self.fileName[self.currentFile] + "', Line " + str(self.address[self.currentFile][0])
 
 class TemplateReader:
 
     # The template file reader
 
-    templateFile = open(templatePath, 'r')
+    templateFile = TemplateBuffer(templatePath)
     tokens = Tokens()
     escape = EscapeCharacters()
     token = ''
     isMeta = False
     reusIndex = {}
     varIndex = {}
-    address = 0
+    address = [0, 0, 0]
 
     def jump(self, addr):
-        self.templateFile.seek(addr)
+        self.templateFile.jump(addr)
         self.address = addr
         return
 
@@ -170,10 +322,11 @@ class TemplateReader:
         # Returns the token and
         # also returns True if
         # the token is meta.
-        self.token = self.templateFile.read(1)
+        self.token = self.templateFile.read()
         if self.token == '':
+            source.getNext()  # This will successfully exit the program if the whole source has been read.
             exitProg.warning("Source is larger than the templated device.")
-        self.address = self.templateFile.tell()
+        self.address = self.templateFile.getAddress()
         if self.tokens.isMeta(self.token):
             self.isMeta = True
         else:
@@ -244,7 +397,6 @@ class TemplateReader:
                 charAcc += self.token
             self.getNext()
         return charAcc
-
 
 source = SourceReader()
 template = TemplateReader()
@@ -369,27 +521,21 @@ def callHandler():
     template.advance() # advance to name
     callName = template.getName() # Get name
     if callName in template.reusIndex:
-        returnFunc = exitProg.currFunc
         returnAddress = template.address
         template.jumpToKey(callName)
-        exitProg.currFunc = callName
         commonParse()
         template.jump(returnAddress)
-        exitProg.currFunc = returnFunc
     elif callName in template.varIndex:
         value = template.varFetch(callName)[source.getNext()] # The only line that reads from source xD
-        if value[1] == True:
-            returnFunc = exitProg.currFunc
+        if value[1] == True:  # if the value holds a jump address...
             returnAddress = template.address
             template.jump(value[0])
-            exitProg.currFunc = callName
             commonParse()
             template.jump(returnAddress)
-            exitProg.currFunc = returnFunc
         else:
             output.write(value[0])
     else:
-        exitProg.error("undefined template or var call: "+ callName)
+        exitProg.error("undefined template or var call: " + callName)
     return
 
 def countParse():
@@ -449,6 +595,7 @@ while True:
     # file is reached.
     # This is done from within
     # the source object.
+
     try:
         mainParse()
     except RuntimeError as err:
